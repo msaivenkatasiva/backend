@@ -59,9 +59,19 @@ pipeline {
                             classifier: '',
                             file: 'backend-' + "${appVersion}" + '.zip',
                             type: 'zip']
-        ]
-     )
+                        ]
+                    )
                 }
+            }
+        }
+        stage('Deploy') {
+            steps{
+                script{
+                    def params = [
+                    string(name: 'appVersion', value: "")
+                    ]
+                    build job: 'backend-deploy', parameters: params, propogate: false
+                } 
             }
         }
     }
