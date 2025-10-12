@@ -52,7 +52,7 @@ pipeline {
                         nexusUrl: "${nexusUrl}",
                         groupId: 'com.backend',
                         version: "${appVersion}"
-                        repository: 'backend',
+                        repository: "backend",
                         credentialsId: 'nexus-auth',
                         artifacts: [
                             [artifactId: "backend",
