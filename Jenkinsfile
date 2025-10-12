@@ -10,9 +10,9 @@ pipeline {
     environment {
         def appVersion = '' //variable declaration
     }
-    parameters{
-        booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
-    }
+    // parameters{
+    //     booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
+    // }
     
     stages {
         stage('read the version') {
