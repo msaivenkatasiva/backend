@@ -9,6 +9,7 @@ pipeline {
     }
     environment {
         def appVersion = '' //variable declaration
+        def nexusUrl = 'nexus.devops76.sbs:8081'
     }
     // parameters{
     //     booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
@@ -40,6 +41,27 @@ pipeline {
                 zip -q -r backend-${appVersion}.zip * -x Jenkinsfile -x backend-${appVersion}.zip
                 ls -ltr
                 """
+            }
+        }
+        stage('Nexus Artifact Upload'){
+            steps {
+                script{
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: "${nexusUrl}",
+                        groupId: 'com.backend',
+                        version: "${appVersion}"
+                        repository: 'backend',
+                        credentialsId: 'nexus-auth',
+                        artifacts: [
+                            [artifactId: "backend",
+                            classifier: '',
+                            file: 'backend-' + "${appVersion}" + '.zip',
+                            type: 'zip']
+        ]
+     )
+                }
             }
         }
     }
