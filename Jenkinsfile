@@ -1,78 +1,90 @@
 pipeline {
-  agent { label 'AGENT-1' }
-  options {
-    timeout(time: 60, unit: 'MINUTES')
-    disableConcurrentBuilds()
-    ansiColor('xterm')
-  }
-  environment {
-    APP_VERSION = ""                            // will be set after reading package.json
-    NEXUS_URL   = 'nexus.devops76.sbs:8081'
-  }
-  stages {
-    stage('Read version from package.json') {
-      steps {
-        script {
-          def pkg = readJSON file: 'package.json'
-          env.APP_VERSION = (pkg.version as String)
-          echo "Application version: ${env.APP_VERSION}"
+    agent {
+        label 'AGENT-1'
+    }
+    options {
+        timeout(time: 60, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        ansiColor('xterm')
+    }
+    environment {
+        def appVersion = '' //variable declaration
+        def nexusUrl = 'nexus.devops76.sbs:8081'
+    }
+    // parameters{
+    //     booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
+    // }
+    
+    stages {
+        stage('read the version') {
+            steps {
+                script {
+                def packageJson = readJSON file: 'package.json'
+                appVersion = packageJson.version
+                echo "application version: $appVersion"
+                }
+            }
         }
-      }
-    }
-    stage('Install dependencies') {
-      steps {
-        sh '''
-          npm install
-          echo "APP_VERSION=$APP_VERSION"
-        '''
-      }
-    }
-    stage('Build artifact (zip)') {
-      steps {
-        sh '''
-          set -e
-          ART="backend-${APP_VERSION}.zip"
-          zip -q -r "$ART" . -x Jenkinsfile -x "$ART"
-          ls -l "$ART"
-        '''
-      }
-    }
-    stage('Upload to Nexus') {
-      steps {
-        script {
-          nexusArtifactUploader(
-            nexusVersion: 'nexus3',
-            protocol: 'http',
-            nexusUrl: env.NEXUS_URL,
-            repository: 'backend',
-            groupId: 'com.expense',
-            version: env.APP_VERSION,
-            credentialsId: 'nexus-auth',
-            artifacts: [[
-              artifactId: 'backend',
-              classifier: '',
-              file: "backend-${env.APP_VERSION}.zip",
-              type: 'zip'
-            ]]
-          )
+
+        stage('install dependencies') {
+            steps {
+                sh """
+                 npm install
+                 ls -ltr
+                 echo "application version: $appVersion" 
+                """
+            }
         }
-      }
-    }
-    stage('Trigger downstream deploy') {
-      steps {
-        script {
-          build job: 'backend-deploy',            // <-- adjust if your job path differs
-            propagate: true,
-            parameters: [
-              string(name: 'appVersion', value: env.APP_VERSION)
-            ]
+        stage('Build'){
+            steps {
+                sh """
+                zip -q -r backend-${appVersion}.zip * -x Jenkinsfile -x backend-${appVersion}.zip
+                ls -ltr
+                """
+            }
         }
-      }
+        stage('Nexus Artifact Upload'){
+            steps {
+                script{
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: "${nexusUrl}",
+                        groupId: 'com.expense',
+                        version: "${appVersion}",
+                        repository: "backend",
+                        credentialsId: 'nexus-auth',
+                        artifacts: [
+                            [artifactId: "backend",
+                            classifier: '',
+                            file: 'backend-' + "${appVersion}" + '.zip',
+                            type: 'zip']
+                        ]
+                    )
+                }
+            }
+        }
+        stage('Deploy') {
+            steps{
+                script{
+                    def params = [
+                    string(name: 'appVersion', value: "")
+                    ]
+                    build job: 'backend-deploy', parameters: params, propogate: false
+                } 
+            }
+        }
     }
-  }
-  post {
-    always  { echo 'Cleanup'; deleteDir() }
-    success { echo 'Upstream succeeded' }
-    failure { echo 'Upstream failed' }
-  }
+    post {
+        always {
+            echo 'I Will run always'
+            deleteDir()
+        }
+        success {
+            echo 'I will run when pipeline is success'
+        }
+        failure {
+            echo 'i will run when pipeline is failure'
+        }
+    }
 }
