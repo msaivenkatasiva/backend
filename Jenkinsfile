@@ -50,7 +50,7 @@ pipeline {
             }
             steps {
                 script {
-                    withSonarQubeEnv('sonar-7.0') { //referring sonar server
+                    withSonarQubeEnv('sonar-auth') { //referring sonar server
                         sh "${scannerHome}/bin/sonar-scanner"
                     }
                 }
