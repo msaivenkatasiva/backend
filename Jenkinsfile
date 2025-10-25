@@ -44,33 +44,18 @@ pipeline {
             }
         }
 
-        stage('Sonar Scan') {
+        stage('sonar scan'){
             environment {
-                scannerHome = tool 'sonar-7.0' // your SonarQube scanner CLI
-    }
-    steps {
-        withSonarQubeEnv('7.0') { // this matches your SonarQube installation name
-            sh """
-            ${scannerHome}/bin/sonar-scanner \
-                -Dsonar.login=$SONAR_AUTH_TOKEN
-            """
+                scannerHome = tool 'sonar-7.0' //refering scanner CLI
+            }
+            steps {
+                script {
+                    withSonarQubeEnv('sonar-7.0') { //referring sonar server
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
         }
-    }
-}
-
-
-        // stage('sonar scan'){
-        //     environment {
-        //         scannerHome = tool 'sonar-7.0' //refering scanner CLI
-        //     }
-        //     steps {
-        //         script {
-        //             withSonarQubeEnv('sonar-auth') { //referring sonar server
-        //                 sh "${scannerHome}/bin/sonar-scanner"
-        //             }
-        //         }
-        //     }
-        // }
 
         // stage("Quality Gate") {
         //     steps {
