@@ -11,9 +11,9 @@ pipeline {
         def appVersion = '' //variable declaration
         def nexusUrl = 'nexus.devops76.sbs:8081'
     }
-    // parameters{
-    //     booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
-    // }
+    parameters{
+        booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
+    }
     
     stages {
         stage('read the version') {
@@ -87,6 +87,11 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when{
+                expression{
+                    params.deploy
+                }
+            }
             steps{
                 script{
                     def params = [
