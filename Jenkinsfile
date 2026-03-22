@@ -180,10 +180,8 @@ pipeline {
         stage('Deploy'){
             steps {
                 sh """
-                    pwd
-                    ls -R
-                    
-                    sed -i 's/IMAGE_VERSION/${appVersion}/g' helm/values.yaml
+                    cd helm
+                    sed -i 's/IMAGE_VERSION/${appVersion}/g' values.yaml
                     helm install backend .
                 """
             }
