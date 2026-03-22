@@ -183,7 +183,7 @@ pipeline {
                     pwd
                     ls -R
                     
-                    sed -i 's/IMAGE_VERSION/${appVersion}/g' values.yaml
+                    sed -i 's/IMAGE_VERSION/${appVersion}/g' helm/values.yaml
                     helm install backend .
                 """
             }
